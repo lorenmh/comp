@@ -1,5 +1,5 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef LLVMLEXER_H
+#define LLVMLEXER_H
 
 #include <string>
 #include <stdio.h>
