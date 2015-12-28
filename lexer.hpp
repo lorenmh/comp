@@ -19,7 +19,8 @@ typedef enum Type {
   ASTERISK,
   PERCENT,
   PLUS,
-  EQUALS
+  EQUALS,
+  UNKNOWN
 } Type;
 
 typedef struct Symbol {
@@ -43,8 +44,6 @@ typedef struct Symbol {
   }
 
   Symbol& operator= (Symbol const& symbol_) {
-    std::cout << "ASSIGNMENT\n";
-
     if (this != &symbol_) {
       size = symbol_.size;
       ptr = (void*) malloc(size);
@@ -56,9 +55,24 @@ typedef struct Symbol {
 
 } Symbol;
 
+static Symbol NULL_SYMBOL(NULL, 0);
+
 typedef struct Token {
   Type type;
   Symbol symbol;
+
+  Token(Type type_, Symbol symbol_)
+  : symbol(symbol_)
+  {
+    type = type_;
+  }  
+
+  Token(Type type_)
+  : symbol(NULL_SYMBOL)
+  {
+    type = type_;
+  }
+
 } Token;
 
 #endif
