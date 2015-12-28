@@ -22,38 +22,43 @@ typedef enum Type {
   EQUALS
 } Type;
 
-typedef struct Token {
-  Type type;
-  void* symbol;
-  
-  ~Token() {
-    if (symbol)
-      free(symbol);
+typedef struct Symbol {
+  void* ptr;
+  int size;
+
+  ~Symbol() {
+    if (ptr)
+      free(ptr);
   }
 
-  Token(Type type_, void* symbol_) {
-    type = type_;
-    symbol = symbol_;
+  Symbol(void* ptr_, int size_) {
+    ptr = ptr_;
+    size = size_;
   }
 
-  Token(Token const& token) {
-    type = token.type;
-    symbol = (void*) malloc(sizeof(token.symbol));
-    memcpy(symbol, token.symbol, sizeof(symbol));
+  Symbol(Symbol const& symbol_) {
+    size = symbol_.size;
+    ptr = (void*) malloc(size);
+    memcpy(ptr, symbol_.ptr, size);
   }
 
-  Token& operator= (Token const& token) {
+  Symbol& operator= (Symbol const& symbol_) {
     std::cout << "ASSIGNMENT\n";
 
-    if (this != &token) {
-      type = token.type;
-      symbol = (void*) malloc(sizeof(token.symbol));
-      memcpy(symbol, token.symbol, sizeof(symbol));
+    if (this != &symbol_) {
+      size = symbol_.size;
+      ptr = (void*) malloc(size);
+      memcpy(ptr, symbol_.ptr, size);
     }
 
     return *this;
   }
 
+} Symbol;
+
+typedef struct Token {
+  Type type;
+  Symbol symbol;
 } Token;
 
 #endif

@@ -4,12 +4,11 @@
 #include <cstring>
 
 Token createToken() {
-  //char* str = (char*) malloc(6 * sizeof(char));
-  //strncpy(str, "eyyyy", 6);
-  int* i = (int*) malloc(sizeof(int));
-  *i = 43;
+  char* str = (char*) malloc(6 * sizeof(char));
+  strncpy(str, "eyyyy", 6);
+  Symbol sym(str, 6 * sizeof(char));
 
-  Token token(ID, i);
+  Token token = { ID, sym };
 
   return token;
 }
@@ -17,8 +16,10 @@ Token createToken() {
 void printToken(Token const& token) {
   std::cout << "TOKEN: " << &token << '\n';
   std::cout << "TYPE: " << token.type << '\n';
-  std::cout << "SYMBOL: " << token.symbol << '\n';
-  std::cout << "SYMBOL_STR: " << (char*) token.symbol << "\n\n";
+  std::cout << "SYMBOL: " << &token.symbol << '\n';
+  std::cout << "SYMBOL_STR: " << (char*) token.symbol.ptr << '\n';
+  std::cout << "SYMBOL_SIZE: " << token.symbol.size << "\n\n";
+
 }
 
 int main() {
