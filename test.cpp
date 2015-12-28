@@ -1,31 +1,17 @@
 
-#include "lexer.hpp"
 #include <iostream>
 #include <cstring>
+#include <vector>
 
-Token createToken() {
-  char* str = (char*) malloc(6 * sizeof(char));
-  strncpy(str, "eyyyy", 6);
-  Symbol sym(str, 6 * sizeof(char));
-
-  Token token = { ID, sym };
-
-  return token;
-}
-
-void printToken(Token const& token) {
-  std::cout << "TOKEN: " << &token << '\n';
-  std::cout << "TYPE: " << token.type << '\n';
-  std::cout << "SYMBOL: " << &token.symbol << '\n';
-  std::cout << "SYMBOL_STR: " << (char*) token.symbol.ptr << '\n';
-  std::cout << "SYMBOL_SIZE: " << token.symbol.size << "\n\n";
-
-}
+#include "lexer.hpp"
 
 int main() {
-  Token foo = createToken();
-  printToken(foo);
-  Token bar(foo);
-  bar = foo;
-  printToken(bar);
+  std::vector<Token> tokens;
+
+  Token currentToken = nextToken();
+  while (currentToken.type != END_OF_FILE) {
+    printToken(currentToken);
+    currentToken = nextToken();
+  }
+
 }
