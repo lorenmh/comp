@@ -25,11 +25,23 @@ typedef enum Type {
 typedef struct Token {
   Type type;
   void* symbol;
+  
   ~Token() {
-    std::cout << "DESTRUCTING!\nSYMBOL ADDRESS: " << symbol << '\n';
     if (symbol)
       free(symbol);
   }
+
+  Token(Type type_, void* symbol_) {
+    type = type_;
+    symbol = symbol_;
+  }
+
+  Token(const Token &token) {
+    type = token.type;
+    symbol = (void*) malloc(sizeof(token.symbol));
+    memcpy(symbol, token.symbol, sizeof(symbol));
+  }
+
 } Token;
 
 #endif
