@@ -26,7 +26,7 @@ typedef struct Token {
   Type type;
   void* symbol;
   ~Token() {
-    std::cout << "DESTRUCTED!\n";
+    std::cout << "DESTRUCTING!\nSYMBOL ADDRESS: " << symbol << '\n';
     if (symbol)
       free(symbol);
   }
