@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <map>
 
 typedef enum Type {
   ID,
   FUNCTION,
+  ARROW_FUNCTION,
   STRING,
   FLOAT,
   INT,
@@ -15,13 +17,36 @@ typedef enum Type {
   RPAREN,
   LBRACK,
   RBRACK,
+  LCURLY,
+  RCURLY,
+  QUOTE,
+  APOSTROPHE,
   DASH,
   ASTERISK,
   PERCENT,
   PLUS,
   EQUALS,
-  UNKNOWN
+  UNKNOWN,
+  END_OF_FILE
 } Type;
+
+static std::map<std::string, Type> StringToType = {
+  {"function", FUNCTION},
+  {"=>", ARROW_FUNCTION},
+  {"(", LPAREN},
+  {")", RPAREN},
+  {"[", LBRACK},
+  {"]", RBRACK},
+  {"{", LCURLY},
+  {"}", RCURLY},
+  {"\"", QUOTE},
+  {"'", APOSTROPHE},
+  {"-", DASH},
+  {"*", ASTERISK},
+  {"%", PERCENT},
+  {"+", PLUS},
+  {"=", EQUALS}
+};
 
 typedef struct Symbol {
   void* ptr;
@@ -74,5 +99,22 @@ typedef struct Token {
   }
 
 } Token;
+
+static Token END_OF_FILE_TOKEN(END_OF_FILE, NULL_SYMBOL);
+
+Token nextToken() {
+  char currentChar = getchar();
+
+  while(isspace(currentChar))
+    currentChar = getchar();
+
+  if (isalpha(currentChar)) {
+    std::string id(&currentChar);
+    while(isalnum(currentChar))
+      id += currentChar;
+  }
+
+  return END_OF_FILE_TOKEN;
+}
 
 #endif
