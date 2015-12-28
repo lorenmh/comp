@@ -4,10 +4,12 @@
 #include <cstring>
 
 Token createToken() {
-  char* str = (char*) malloc(6 * sizeof(char));
-  strncpy(str, "eyyyy", 6);
+  //char* str = (char*) malloc(6 * sizeof(char));
+  //strncpy(str, "eyyyy", 6);
+  int* i = (int*) malloc(sizeof(int));
+  *i = 43;
 
-  Token token(ID, str);
+  Token token(ID, i);
 
   return token;
 }
@@ -23,5 +25,6 @@ int main() {
   Token foo = createToken();
   printToken(foo);
   Token bar(foo);
+  bar = foo;
   printToken(bar);
 }

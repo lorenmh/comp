@@ -36,10 +36,22 @@ typedef struct Token {
     symbol = symbol_;
   }
 
-  Token(const Token &token) {
+  Token(Token const& token) {
     type = token.type;
     symbol = (void*) malloc(sizeof(token.symbol));
     memcpy(symbol, token.symbol, sizeof(symbol));
+  }
+
+  Token& operator= (Token const& token) {
+    std::cout << "ASSIGNMENT\n";
+
+    if (this != &token) {
+      type = token.type;
+      symbol = (void*) malloc(sizeof(token.symbol));
+      memcpy(symbol, token.symbol, sizeof(symbol));
+    }
+
+    return *this;
   }
 
 } Token;
