@@ -151,6 +151,7 @@ void tokensFromLine() {
     rules.push(typeRegex.second, typeRegex.first);
   }
 
+  rules.push("*", "[ \t\r\n]+", rules.skip(), ".");
   //rules.push("[0-9]+", 1);
   //rules.push("[a-z]+", 2);
   lexertl::generator::build(rules, sm);
