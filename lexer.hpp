@@ -11,7 +11,7 @@ typedef enum Type {
   ID = 1,
   FUNCTION,
   ARROW_FUNCTION,
-  STRING,
+  STRING_LITERAL,
   FLOAT,
   INT,
   LPAREN,
@@ -20,29 +20,43 @@ typedef enum Type {
   RBRACK,
   LCURLY,
   RCURLY,
-  QUOTE,
-  APOSTROPHE,
+  COMMA,
   DASH,
   ASTERISK,
+  FSLASH,
   PERCENT,
   PLUS,
   EQUALS,
   UNKNOWN,
-  END_OF_FILE
 } Type;
 
 static std::map<Type, std::string> typeToRegex = {
   {ID, "[a-zA-Z]\\w*"},
   {FUNCTION, "function"},
   {ARROW_FUNCTION, "\\=\\>"},
-  {STRING, "[\"](\\\\.|[^\"])*[\"]"}
+  {STRING_LITERAL, "[\"](\\\\.|[^\"])*[\"]|['](\\\\.|[^'])*[']"},
+  {FLOAT, "\\d+\\.\\d*|\\d*\\.\\d+"},
+  {INT, "\\d+"},
+  {LPAREN, "\\("},
+  {RPAREN, "\\)"},
+  {LBRACK, "\\["},
+  {RBRACK, "\\]"},
+  {LCURLY, "\\{"},
+  {RCURLY, "\\}"},
+  {COMMA, ","},
+  {DASH, "\\-"},
+  {ASTERISK, "\\*"},
+  {FSLASH, "\\/"},
+  {PERCENT, "\\%"},
+  {PLUS, "\\+"},
+  {EQUALS, "\\="},
 };
 
 static std::map<Type, std::string> typeToTitle = {
   {ID, "ID"},
   {FUNCTION, "FUNCTION"},
   {ARROW_FUNCTION, "ARROW_FUNCTION"},
-  {STRING, "STRING"},
+  {STRING_LITERAL, "STRING"},
   {FLOAT, "FLOAT"},
   {INT, "INT"},
   {LPAREN, "LPAREN"},
@@ -51,15 +65,14 @@ static std::map<Type, std::string> typeToTitle = {
   {RBRACK, "RBRACK"},
   {LCURLY, "LCURLY"},
   {RCURLY, "RCURLY"},
-  {QUOTE, "QUOTE"},
-  {APOSTROPHE, "APOSTROPHE"},
+  {COMMA, "COMMA"},
   {DASH, "DASH"},
   {ASTERISK, "ASTERISK"},
+  {FSLASH, "FSLASH"},
   {PERCENT, "PERCENT"},
   {PLUS, "PLUS"},
   {EQUALS, "EQUALS"},
-  {UNKNOWN, "UNKNOWN"},
-  {END_OF_FILE, "END_OF_FILE"}
+  {UNKNOWN, "UNKNOWN"}
 };
 
 typedef struct Symbol {
@@ -121,8 +134,6 @@ typedef struct Token {
 
 } Token;
 
-static Token EOF_TOKEN(END_OF_FILE, NULL_SYMBOL);
-
 void printToken(Token const& token) {
   auto search = typeToTitle.find(token.type);
   
@@ -152,11 +163,10 @@ void tokensFromLine() {
   }
 
   rules.push("*", "[ \t\r\n]+", rules.skip(), ".");
-  //rules.push("[0-9]+", 1);
-  //rules.push("[a-z]+", 2);
+
   lexertl::generator::build(rules, sm);
 
-  std::string input("abc012Ad3e4 function \"this \\\"is a string with a function text in it!\" blah => bar");
+  std::string input("abc012Ad3e4 'apost string' function \"this is a \\\"string\\\" with a function text in it!\" blah => bar 1 + 1.0 (foo) {bar} - / 2 % 2");
   lexertl::smatch results(input.begin(), input.end());
 
   // Read ahead
