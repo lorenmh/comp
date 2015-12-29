@@ -3,6 +3,9 @@
 #include <iostream>
 #include <map>
 #include <string.h>
+#include "lexertl/generator.hpp"
+#include "lexertl/lookup.hpp"
+#include "lexertl/match_results.hpp"
 
 typedef enum Type {
   ID,
@@ -154,77 +157,17 @@ void printToken(Token const& token) {
   }
 }
 
-bool isLastCharSet = false;
-char lastChar;
+std::vector<Token> tokensFromLine() {
+  lexertl::rules rules;
+  lexertl::state_machine sm;
 
-Token nextToken() {
-  // char currentChar;
+  rules.push("[0-9]+", 1);
+  rules.push("[a-z]+", 2);
+  lexertl::generator::build(rules, sm);
 
-  // if (isLastCharSet) {
-  //   currentChar = lastChar;
-  // } else {
-  //   currentChar = getchar();
-  // }
-  //   
-  // while (isspace(currentChar))
-  //   currentChar = getchar();
+  std::string input("abc012Ad3e4");
+  lexertl::smatch results(input.begin(), input.end());
 
-  // if (isalpha(currentChar)) {
-  //   std::string alphanumeric(&currentChar);
-
-  //   while (isalnum(currentChar = getchar())) {
-  //     alphanumeric += currentChar;
-  //   }
-
-  //   lastChar = currentChar;
-  //   isLastCharSet = true;
-
-  //   auto search = stringToType.find(alphanumeric);
-  //   if (search == stringToType.end()) {
-  //     std::string* symbolStr = new std::string(alphanumeric);
-  //     return Token(ID, Symbol(symbolStr, symbolStr->size()));
-  //   } else {
-  //     return Token((Type) search->second);
-  //   }
-  // } else if (isdigit(currentChar) || currentChar == '.') {
-  //   std::string numStr;
-
-  //   bool hasDecimal = false;
-
-  //   do {
-  //     if (currentChar == '.') {
-  //       hasDecimal = true;
-  //     }
-  //     numStr += currentChar;
-  //     currentChar = getchar();
-  //   } while (isdigit(currentChar) || currentChar == '.');
-
-  //   lastChar = currentChar;
-  //   isLastCharSet = true;
-
-  //   if (hasDecimal) {
-  //     float* symbolFloat = new float(strtof(numStr.c_str(), 0));
-  //     return Token(FLOAT, Symbol(symbolFloat, sizeof(float)));
-  //   } else {
-  //     int* symbolInt = new int(atoi(numStr.c_str()));
-  //     return Token(INT, Symbol(symbolInt, sizeof(int)));
-  //   }
-  // } else if (currentChar != EOF) {
-  //   std::string tokenString(&currentChar);
-
-  //   while (!isspace(currentChar = getchar()))
-  //     tokenString += currentChar;
-
-  //   lastChar = currentChar;
-  //   isLastCharSet = true;
-
-  //   auto search = stringToType.find(tokenString);
-  //   if (search == stringToType.end()) {
-  //     return Token(UNKNOWN);
-  //   } else {
-  //     return Token((Type) search->second);
-  //   }
-  // }
-  // std::cout << "here!??!?\n";
-  return EOF_TOKEN;
+  // Read ahead
+  lexertl::lookup(sm, results);
 }
