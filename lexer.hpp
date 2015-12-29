@@ -35,7 +35,7 @@ static std::map<Type, std::string> typeToRegex = {
   {ID, "[a-zA-Z]\\w*"},
   {FUNCTION, "function"},
   {ARROW_FUNCTION, "\\=\\>"},
-  {STRING, "[\"](.)*[\"]"}
+  {STRING, "[\"](\\\\.|[^\"])*[\"]"}
 };
 
 static std::map<Type, std::string> typeToTitle = {
@@ -155,7 +155,7 @@ void tokensFromLine() {
   //rules.push("[a-z]+", 2);
   lexertl::generator::build(rules, sm);
 
-  std::string input("abc012Ad3e4 function \"this is a string with a function text in it!\" blah => bar");
+  std::string input("abc012Ad3e4 function \"this \\\"is a string with a function text in it!\" blah => bar");
   lexertl::smatch results(input.begin(), input.end());
 
   // Read ahead
