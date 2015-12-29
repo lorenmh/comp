@@ -8,7 +8,7 @@
 #include "lexertl/match_results.hpp"
 
 typedef enum Type {
-  ID,
+  ID = 1,
   FUNCTION,
   ARROW_FUNCTION,
   STRING,
@@ -31,25 +31,11 @@ typedef enum Type {
   END_OF_FILE
 } Type;
 
-static std::map<std::string, Type> stringToType = {
-  {"function", FUNCTION},
-  {"=>", ARROW_FUNCTION}
-};
-
-static std::map<char, Type> charToType = {
-  {'(', LPAREN},
-  {')', RPAREN},
-  {'[', LBRACK},
-  {']', RBRACK},
-  {'{', LCURLY},
-  {'}', RCURLY},
-  {'"', QUOTE},
-  {'\'', APOSTROPHE},
-  {'-', DASH},
-  {'*', ASTERISK},
-  {'%', PERCENT},
-  {'+', PLUS},
-  {'=', EQUALS}
+static std::map<Type, std::string> typeToRegex = {
+  {ID, "[a-zA-Z]\\w*"},
+  {FUNCTION, "function"},
+  {ARROW_FUNCTION, "\\=\\>"},
+  {STRING, "[\"](.)*[\"]"}
 };
 
 static std::map<Type, std::string> typeToTitle = {
@@ -157,17 +143,28 @@ void printToken(Token const& token) {
   }
 }
 
-std::vector<Token> tokensFromLine() {
+void tokensFromLine() {
   lexertl::rules rules;
   lexertl::state_machine sm;
 
-  rules.push("[0-9]+", 1);
-  rules.push("[a-z]+", 2);
+  for (auto& typeRegex : typeToRegex) {
+    rules.push(typeRegex.second, typeRegex.first);
+  }
+
+  //rules.push("[0-9]+", 1);
+  //rules.push("[a-z]+", 2);
   lexertl::generator::build(rules, sm);
 
-  std::string input("abc012Ad3e4");
+  std::string input("abc012Ad3e4 function \"this is a string with a function text in it!\" blah => bar");
   lexertl::smatch results(input.begin(), input.end());
 
   // Read ahead
   lexertl::lookup(sm, results);
+  
+  while (results.id != 0)
+  {
+      std::cout << "Id: " << results.id << ", Token: '" <<
+          results.str () << "'\n";
+      lexertl::lookup(sm, results);
+  }
 }
