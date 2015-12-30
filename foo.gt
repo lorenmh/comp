@@ -1,5 +1,9 @@
-function foo(a,b) {
+function foo(a, b) {
   return a + b;
 }
 
-var a = (a,b) => a + b;
+var a = (a, b) => a + b;
+
+foo(1.0, 2.0);
+
+a(1, 2);
