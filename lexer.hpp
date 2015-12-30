@@ -3,14 +3,17 @@
 #include <iostream>
 #include <map>
 #include <string.h>
+#include <fstream>
 #include "lexertl/generator.hpp"
 #include "lexertl/lookup.hpp"
 #include "lexertl/match_results.hpp"
+#include "lexertl/stream_shared_iterator.hpp"
 
 typedef enum Type {
-  ID = 1,
-  FUNCTION,
+  FUNCTION = 1,
   ARROW_FUNCTION,
+  RETURN,
+  VAR,
   STRING_LITERAL,
   FLOAT,
   INT,
@@ -27,13 +30,18 @@ typedef enum Type {
   PERCENT,
   PLUS,
   EQUALS,
+  DOUBLE_EQUALS,
+  COLON,
+  SEMICOLON,
+  ID,
   UNKNOWN,
 } Type;
 
 static std::map<Type, std::string> typeToRegex = {
-  {ID, "[a-zA-Z]\\w*"},
   {FUNCTION, "function"},
   {ARROW_FUNCTION, "\\=\\>"},
+  {RETURN, "return"},
+  {VAR, "var"},
   {STRING_LITERAL, "[\"](\\\\.|[^\"])*[\"]|['](\\\\.|[^'])*[']"},
   {FLOAT, "\\d+\\.\\d*|\\d*\\.\\d+"},
   {INT, "\\d+"},
@@ -50,13 +58,18 @@ static std::map<Type, std::string> typeToRegex = {
   {PERCENT, "\\%"},
   {PLUS, "\\+"},
   {EQUALS, "\\="},
+  {DOUBLE_EQUALS, "\\=\\="},
+  {COLON, "\\:"},
+  {SEMICOLON, "\\;"},
+  {ID, "[a-zA-Z]\\w*"},
 };
 
 static std::map<Type, std::string> typeToTitle = {
-  {ID, "ID"},
   {FUNCTION, "FUNCTION"},
   {ARROW_FUNCTION, "ARROW_FUNCTION"},
-  {STRING_LITERAL, "STRING"},
+  {RETURN, "RETURN"},
+  {VAR, "VAR"},
+  {STRING_LITERAL, "STRING_LITERAL"},
   {FLOAT, "FLOAT"},
   {INT, "INT"},
   {LPAREN, "LPAREN"},
@@ -72,38 +85,42 @@ static std::map<Type, std::string> typeToTitle = {
   {PERCENT, "PERCENT"},
   {PLUS, "PLUS"},
   {EQUALS, "EQUALS"},
+  {DOUBLE_EQUALS, "DOUBLE_EQUALS"},
+  {COLON, "COLON"},
+  {SEMICOLON, "SEMICOLON"},
+  {ID, "ID"},
   {UNKNOWN, "UNKNOWN"}
 };
 
-typedef struct Symbol {
+typedef struct Attribute {
   void* ptr;
   int size;
 
-  ~Symbol() {
+  ~Attribute() {
     if (ptr)
       free(ptr);
   }
 
-  Symbol(void* ptr_, int size_) {
+  Attribute(void* ptr_, int size_) {
     ptr = ptr_;
     size = size_;
   }
 
-  Symbol(Symbol const& symbol_) {
-    size = symbol_.size;
+  Attribute(Attribute const& attribute_) {
+    size = attribute_.size;
     if (size) {
       ptr = (void*) malloc(size);
-      memcpy(ptr, symbol_.ptr, size);
+      memcpy(ptr, attribute_.ptr, size);
     } else {
       ptr = NULL;
     }
   }
 
-  Symbol& operator= (Symbol const& symbol_) {
-    if (this != &symbol_) {
-      size = symbol_.size;
+  Attribute& operator= (Attribute const& attribute_) {
+    if (this != &attribute_) {
+      size = attribute_.size;
       if (size) {
-        memcpy(ptr, symbol_.ptr, size);
+        memcpy(ptr, attribute_.ptr, size);
       } else {
         ptr = NULL;
       }
@@ -112,22 +129,22 @@ typedef struct Symbol {
     return *this;
   }
 
-} Symbol;
+} Attribute;
 
-static Symbol NULL_SYMBOL(NULL, 0);
+static Attribute NULL_ATTRIBUTE(NULL, 0);
 
 typedef struct Token {
   Type type;
-  Symbol symbol;
+  Attribute attribute;
 
-  Token(Type type_, Symbol symbol_)
-  : symbol(symbol_)
+  Token(Type type_, Attribute attribute_)
+  : attribute(attribute_)
   {
     type = type_;
   }  
 
   Token(Type type_)
-  : symbol(NULL_SYMBOL)
+  : attribute(NULL_ATTRIBUTE)
   {
     type = type_;
   }
@@ -143,18 +160,20 @@ void printToken(Token const& token) {
     std::cout << '<' << search->second;
   }
 
-  if (token.type == ID) {
-    std::cout << ", " << *((std::string*)token.symbol.ptr) << ">\n";
+  if (token.type == ID || token.type == STRING_LITERAL) {
+    std::cout << ", " << *((std::string*)token.attribute.ptr) << ">\n";
   } else if (token.type == FLOAT) {
-    std::cout << ", " << *((float*)token.symbol.ptr) << ">\n";
+    std::cout << ", " << *((float*)token.attribute.ptr) << ">\n";
   } else if (token.type == INT) {
-    std::cout << ", " << *((int*)token.symbol.ptr) << ">\n";
+    std::cout << ", " << *((int*)token.attribute.ptr) << ">\n";
   } else {
     std::cout << ">\n";
   }
 }
 
-void tokensFromLine() {
+// Right now this will do everything from an in-memory representation of
+// the tokens.  Best way would be to stream the tokens once they are made.
+void tokensFromStdin() {
   lexertl::rules rules;
   lexertl::state_machine sm;
 
@@ -166,16 +185,43 @@ void tokensFromLine() {
 
   lexertl::generator::build(rules, sm);
 
-  std::string input("abc012Ad3e4 'apost string' function \"this is a \\\"string\\\" with a function text in it!\" blah => bar 1 + 1.0 (foo) {bar} - / 2 % 2");
-  lexertl::smatch results(input.begin(), input.end());
+  std::ifstream ifile("/dev/stdin");
+  lexertl::stream_shared_iterator iter(ifile);
+  lexertl::stream_shared_iterator end;
+  lexertl::match_results<lexertl::stream_shared_iterator> result(iter, end);
 
-  // Read ahead
-  lexertl::lookup(sm, results);
-  
-  while (results.id != 0)
+  //lexertl::smatch result(input.begin(), input.end());
+
+  // TODO: do this as an iterator
+  std::vector<Token> tokens;
+  for (lexertl::lookup(sm, result);
+       result.id != 0;
+       lexertl::lookup(sm, result))
   {
-      std::cout << "Id: " << results.id << ", Token: '" <<
-          results.str () << "'\n";
-      lexertl::lookup(sm, results);
+    if (result.id == ID || result.id == STRING_LITERAL) {
+
+      std::string* str = new std::string(result.str());
+      Attribute attr(str, str->size() + 1);
+      tokens.push_back(Token((Type)result.id, attr));
+
+    } else if (result.id == INT) {
+
+      int* intVal = new int(atoi(result.str().c_str()));
+      Attribute attr(intVal, sizeof(int));
+      tokens.push_back(Token((Type)result.id, attr));
+
+    } else if (result.id == FLOAT) {
+
+      float* floatVal = new float(std::stof(result.str()));
+      Attribute attr(floatVal, sizeof(float));
+      tokens.push_back(Token((Type)result.id, attr));
+
+    } else {
+      tokens.push_back(Token((Type)result.id));
+    }
+  }
+
+  for (auto& token : tokens) {
+    printToken(token);
   }
 }

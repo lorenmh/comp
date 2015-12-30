@@ -6,5 +6,5 @@
 #include "lexer.hpp"
 
 int main() {
-  tokensFromLine();
+  tokensFromStdin();
 }
