@@ -6,7 +6,6 @@
 #include <fstream>
 #include "lexertl/generator.hpp"
 #include "lexertl/lookup.hpp"
-#include "lexertl/match_results.hpp"
 #include "lexertl/stream_shared_iterator.hpp"
 
 typedef enum Type {
